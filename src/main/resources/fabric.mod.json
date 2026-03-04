@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "block-market",
+  "version": "${version}",
+  "name": "Block Market",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/block-market/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "com.apsurt.blockmarket.client.BlockMarketDataGenerator"
+    ],
+    "client": [
+      "com.apsurt.blockmarket.client.BlockMarketClient"
+    ],
+    "main": [
+      {
+        "adapter": "kotlin",
+        "value": "com.apsurt.blockmarket.BlockMarket"
+      }
+    ]
+  },
+  "mixins": [
+    "block-market.mixins.json",
+    {
+      "config": "block-market.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
