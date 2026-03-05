@@ -1,18 +1,24 @@
 package com.apsurt.blockmarket.engine
 
+import com.apsurt.blockmarket.data.MarketState
 import java.util.UUID
 
 class WalletManager {
-    // In-memory storage for the MVP.
-    // Later, we will tie this to Minecraft's server-side saving system (NBT/JSON).
-    private val balances = mutableMapOf<UUID, Coins>()
+    private var state: MarketState? = null
+
+    /**
+     * Called when the server starts to inject the loaded NBT state.
+     */
+    fun loadState(marketState: MarketState) {
+        this.state = marketState
+    }
 
     /**
      * Gets the current liquid balance of a player.
      * Defaults to 0 if they don't have an account yet.
      */
     fun getBalance(uuid: UUID): Coins {
-        return balances.getOrDefault(uuid, 0L)
+        return state?.balances?.getOrDefault(uuid, 0L) ?: 0L
     }
 
     /**
@@ -22,8 +28,11 @@ class WalletManager {
     fun addCoins(uuid: UUID, amount: Coins) {
         require(amount >= 0) { "Cannot add a negative amount of coins: $amount" }
 
+        val currentState = state ?: return
+
         val currentBalance = getBalance(uuid)
-        balances[uuid] = currentBalance + amount
+        currentState.balances[uuid] = currentBalance + amount
+        currentState.markDirty()
     }
 
     /**
@@ -33,14 +42,16 @@ class WalletManager {
     fun removeCoins(uuid: UUID, amount: Coins): Boolean {
         require(amount >= 0) { "Cannot remove a negative amount of coins: $amount" }
 
+        val currentState = state ?: return false
         val currentBalance = getBalance(uuid)
 
         if (currentBalance >= amount) {
-            balances[uuid] = currentBalance - amount
+            currentState.balances[uuid] = currentBalance - amount
+            currentState.markDirty()
             return true
         }
 
-        return false // Insufficient funds!
+        return false
     }
 
     /**
@@ -48,6 +59,9 @@ class WalletManager {
      */
     fun setBalance(uuid: UUID, amount: Coins) {
         require(amount >= 0) { "Cannot set a negative balance: $amount" }
-        balances[uuid] = amount
+
+        val currentState = state ?: return
+        currentState.balances[uuid] = amount
+        currentState.markDirty()
     }
 }
