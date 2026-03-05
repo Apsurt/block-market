@@ -27,6 +27,8 @@ object BlockMarket : ModInitializer {
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             AdminCommand.register(dispatcher)
             UserCommand.register(dispatcher)
+            // TODO: REMOVE BEFORE PRODUCTION
+            DebugCommand.register(dispatcher)
         }
     }
 }
