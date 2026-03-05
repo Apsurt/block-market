@@ -14,12 +14,10 @@ object BlockMarket : ModInitializer {
     override fun onInitialize() {
         logger.info("Initializing the Free Market!")
 
-        // Register all commands cleanly
+        // Register all commands
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
-            WalletCommand.register(dispatcher)
             AdminCommand.register(dispatcher)
-            MarketCommand.register(dispatcher)
-            PayCommand.register(dispatcher)
+            UserCommand.register(dispatcher)
         }
     }
 }
