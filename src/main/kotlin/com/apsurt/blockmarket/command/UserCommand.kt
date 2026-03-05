@@ -1,8 +1,13 @@
 package com.apsurt.blockmarket.command
 
 import com.apsurt.blockmarket.BlockMarket
+import com.apsurt.blockmarket.engine.Order
+import com.apsurt.blockmarket.engine.OrderSide
+import com.apsurt.blockmarket.engine.OrderType
 import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.LongArgumentType
+import com.mojang.brigadier.arguments.StringArgumentType
 import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
@@ -48,25 +53,148 @@ object UserCommand {
                     )
                 )
 
-                // 3. /bm market
+                // 3. /bm buy <item_id> <amount> (Market Buy)
+                .then(literal("buy")
+                    .then(argument("item", StringArgumentType.word())
+                        .then(argument("amount", IntegerArgumentType.integer(1))
+                            .executes { context ->
+                                val player = context.source.player ?: return@executes 0
+                                val itemId = StringArgumentType.getString(context, "item")
+                                val amount = IntegerArgumentType.getInteger(context, "amount")
+
+                                val order = Order(
+                                    ownerId = player.uuid,
+                                    assetId = itemId,
+                                    side = OrderSide.BUY,
+                                    type = OrderType.MARKET,
+                                    price = 0L, // Price is resolved by the OrderBook for Market orders
+                                    initialAmount = amount
+                                )
+
+                                try {
+                                    val trades = BlockMarket.orchestrator.placeOrder(order)
+                                    player.sendMessage(Text.literal("§aMarket Buy placed! Resulted in ${trades.size} trades."), false)
+                                } catch (e: Exception) {
+                                    player.sendMessage(Text.literal("§cFailed: ${e.message}"), false)
+                                }
+                                1
+                            }
+                        )
+                    )
+                )
+
+                // 4. /bm sell <item_id> <amount> (Market Sell)
+                .then(literal("sell")
+                    .then(argument("item", StringArgumentType.word())
+                        .then(argument("amount", IntegerArgumentType.integer(1))
+                            .executes { context ->
+                                val player = context.source.player ?: return@executes 0
+                                val itemId = StringArgumentType.getString(context, "item")
+                                val amount = IntegerArgumentType.getInteger(context, "amount")
+
+                                // TODO: Verify player actually has the items in their Minecraft inventory!
+                                // TODO: Remove the items from their physical inventory before placing the order.
+
+                                val order = Order(
+                                    ownerId = player.uuid,
+                                    assetId = itemId,
+                                    side = OrderSide.SELL,
+                                    type = OrderType.MARKET,
+                                    price = 0L,
+                                    initialAmount = amount
+                                )
+
+                                try {
+                                    val trades = BlockMarket.orchestrator.placeOrder(order)
+                                    player.sendMessage(Text.literal("§aMarket Sell placed! Resulted in ${trades.size} trades."), false)
+                                } catch (e: Exception) {
+                                    player.sendMessage(Text.literal("§cFailed: ${e.message}"), false)
+                                }
+                                1
+                            }
+                        )
+                    )
+                )
+
+                // 5. /bm bid <item_id> <amount> <price> (Limit Buy)
+                .then(literal("bid")
+                    .then(argument("item", StringArgumentType.word())
+                        .then(argument("amount", IntegerArgumentType.integer(1))
+                            .then(argument("price", LongArgumentType.longArg(1))
+                                .executes { context ->
+                                    val player = context.source.player ?: return@executes 0
+                                    val itemId = StringArgumentType.getString(context, "item")
+                                    val amount = IntegerArgumentType.getInteger(context, "amount")
+                                    val price = LongArgumentType.getLong(context, "price")
+
+                                    val order = Order(
+                                        ownerId = player.uuid,
+                                        assetId = itemId,
+                                        side = OrderSide.BUY,
+                                        type = OrderType.LIMIT,
+                                        price = price,
+                                        initialAmount = amount
+                                    )
+
+                                    try {
+                                        val trades = BlockMarket.orchestrator.placeOrder(order)
+                                        player.sendMessage(Text.literal("§aBid placed for $amount $itemId at $price coins each!"), false)
+                                    } catch (e: Exception) {
+                                        player.sendMessage(Text.literal("§cFailed: ${e.message}"), false)
+                                    }
+                                    1
+                                }
+                            )
+                        )
+                    )
+                )
+
+                // 6. /bm ask <item_id> <amount> <price> (Limit Sell)
+                .then(literal("ask")
+                    .then(argument("item", StringArgumentType.word())
+                        .then(argument("amount", IntegerArgumentType.integer(1))
+                            .then(argument("price", LongArgumentType.longArg(1))
+                                .executes { context ->
+                                    val player = context.source.player ?: return@executes 0
+                                    val itemId = StringArgumentType.getString(context, "item")
+                                    val amount = IntegerArgumentType.getInteger(context, "amount")
+                                    val price = LongArgumentType.getLong(context, "price")
+
+                                    // TODO: Verify & remove physical items from inventory before placing!
+
+                                    val order = Order(
+                                        ownerId = player.uuid,
+                                        assetId = itemId,
+                                        side = OrderSide.SELL,
+                                        type = OrderType.LIMIT,
+                                        price = price,
+                                        initialAmount = amount
+                                    )
+
+                                    try {
+                                        val trades = BlockMarket.orchestrator.placeOrder(order)
+                                        player.sendMessage(Text.literal("§aAsk placed for $amount $itemId at $price coins each!"), false)
+                                    } catch (e: Exception) {
+                                        player.sendMessage(Text.literal("§cFailed: ${e.message}"), false)
+                                    }
+                                    1
+                                }
+                            )
+                        )
+                    )
+                )
+
+                // 7. /bm market (UI and Inbox placeholders)
                 .then(literal("market")
-                    // Executing just /bm market
                     .executes { context ->
                         val player = context.source.player ?: return@executes 0
-
                         player.sendMessage(Text.literal("§d[Opening Market UI...]"), false)
-                        // TODO: Send packet to client to open the visual screen
-
                         1
                     }
-                    // Executing /bm market inbox
                     .then(literal("inbox")
                         .executes { context ->
                             val player = context.source.player ?: return@executes 0
-
-                            // TODO: Implement the logic to sweep EscrowManager.getInbox(player.uuid)
                             player.sendMessage(Text.literal("§7[TODO: Claim items and coins from inbox]"), false)
-
                             1
                         }
                     )
