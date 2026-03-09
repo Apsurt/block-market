@@ -29,7 +29,7 @@ object DebugCommand {
                         items.forEach { itemId ->
                             // Create Asks (Sellers)
                             repeat(500) {
-                                val price = Random.nextLong(10, 1000)
+                                val price = Random.nextLong(200, 1000)
                                 val amount = Random.nextInt(1, 10)
 
                                 // Manually lock items for the bot so the Orchestrator doesn't fail
@@ -48,8 +48,8 @@ object DebugCommand {
                             }
 
                             // Create Bids (Buyers)
-                            repeat(50) {
-                                val price = Random.nextLong(10, 80)
+                            repeat(500) {
+                                val price = Random.nextLong(10, 250)
                                 val amount = Random.nextInt(1, 10)
 
                                 BlockMarket.orchestrator.placeOrder(
@@ -65,7 +65,7 @@ object DebugCommand {
                             }
                         }
 
-                        context.source.sendMessage(Text.literal("§d[Debug] Market populated with 50 orders per item!"))
+                        context.source.sendMessage(Text.literal("§d[Debug] Market populated with 1000 orders per item!"))
                         1
                     }
                 )
