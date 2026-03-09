@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import org.slf4j.LoggerFactory
 
 object BlockMarket : ModInitializer {
-    val logger = LoggerFactory.getLogger("block-market")
+    val logger = LoggerFactory.getLogger("BlockMarket")
     val orchestrator = MarketOrchestrator()
 
     override fun onInitialize() {

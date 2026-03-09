@@ -10,14 +10,14 @@ object MarketPersistence {
         ServerLifecycleEvents.SERVER_STARTED.register { server ->
             val state = MarketState.getServerState(server)
             BlockMarket.orchestrator.walletManager.loadState(state)
-            BlockMarket.logger.info("Block Market balances loaded successfully!")
+            BlockMarket.logger.info("Block Market loaded successfully with ${state.balances.size} player balances.")
         }
 
         // Save data on shutdown (Crucial for persistence!)
         ServerLifecycleEvents.SERVER_STOPPING.register { server ->
             val state = MarketState.getServerState(server)
             state.markDirty() // Ensure Minecraft knows the state needs to be written to disk
-            BlockMarket.logger.info("Block Market data marked for saving.")
+            BlockMarket.logger.info("Block Market shutting down. Saved ${state.balances.size} player balances.")
         }
     }
 }

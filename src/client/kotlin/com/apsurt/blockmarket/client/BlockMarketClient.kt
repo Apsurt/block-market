@@ -9,10 +9,15 @@ import net.fabricmc.api.ClientModInitializer
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.minecraft.client.MinecraftClient
 
+import org.slf4j.LoggerFactory
+
 class BlockMarketClient : ClientModInitializer {
 
     override fun onInitializeClient() {
+        val logger = LoggerFactory.getLogger("BlockMarketClient")
+
         ClientPlayNetworking.registerGlobalReceiver(MarketSyncPayload.ID) { payload, context ->
+            logger.debug("Received MarketSyncPayload for ${payload.assetId}")
             context.client().execute {
                 MinecraftClient.getInstance().setScreen(AssetScreen(payload))
             }

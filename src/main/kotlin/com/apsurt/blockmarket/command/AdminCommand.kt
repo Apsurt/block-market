@@ -24,6 +24,7 @@ object AdminCommand {
                                 val amount = LongArgumentType.getLong(context, "amount")
 
                                 BlockMarket.orchestrator.walletManager.addCoins(target.uuid, amount)
+                                BlockMarket.logger.info("[AUDIT] Admin ${context.source.name} minted $amount coins for ${target.name.string} (${target.uuid})")
                                 context.source.sendMessage(Text.literal("§bMinted $amount coins for ${target.name.string}"))
                                 1
                             }
@@ -42,6 +43,7 @@ object AdminCommand {
                                 val success = BlockMarket.orchestrator.walletManager.removeCoins(target.uuid, amount)
 
                                 if (success) {
+                                    BlockMarket.logger.info("[AUDIT] Admin ${context.source.name} burned $amount coins from ${target.name.string} (${target.uuid})")
                                     context.source.sendMessage(Text.literal("§cBurned $amount coins from ${target.name.string}"))
                                 } else {
                                     context.source.sendMessage(Text.literal("§4Failed! ${target.name.string} does not have enough coins to burn $amount."))
@@ -61,6 +63,7 @@ object AdminCommand {
                                 val amount = LongArgumentType.getLong(context, "amount")
 
                                 BlockMarket.orchestrator.walletManager.setBalance(target.uuid, amount)
+                                BlockMarket.logger.info("[AUDIT] Admin ${context.source.name} set balance of ${target.name.string} (${target.uuid}) to $amount")
                                 context.source.sendMessage(Text.literal("§eSet ${target.name.string}'s balance to $amount coins"))
                                 1
                             }

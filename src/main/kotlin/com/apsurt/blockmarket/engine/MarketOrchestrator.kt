@@ -1,5 +1,6 @@
 package com.apsurt.blockmarket.engine
 
+import com.apsurt.blockmarket.BlockMarket
 import com.apsurt.blockmarket.network.OrderEntry
 import com.apsurt.blockmarket.network.MarketOverviewPayload
 import com.apsurt.blockmarket.network.AssetSummary
@@ -83,6 +84,18 @@ class MarketOrchestrator {
         // 3. Settlement: Move the results to Inboxes
         for (trade in trades) {
             finalizeTrade(trade, order)
+        }
+
+        if (trades.isNotEmpty()) {
+            BlockMarket.logger.info("Engine matched ${trades.size} trades for ${order.assetId}. Total volume moved: ${trades.sumOf { it.amount }} items.")
+        } else {
+            BlockMarket.logger.debug(
+                "Order placed to book without immediate matches: {} {} for {}x {}",
+                order.type,
+                order.side,
+                order.initialAmount,
+                order.assetId
+            )
         }
 
         return trades

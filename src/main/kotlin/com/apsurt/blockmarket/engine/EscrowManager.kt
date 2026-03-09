@@ -1,5 +1,6 @@
 package com.apsurt.blockmarket.engine
 
+import com.apsurt.blockmarket.BlockMarket
 import java.util.UUID
 
 class EscrowManager {
@@ -34,6 +35,10 @@ class EscrowManager {
         if (assetId != null && itemAmount > 0) {
             val current = inbox.claimableItems.getOrDefault(assetId, 0)
             inbox.claimableItems[assetId] = current + itemAmount
+             BlockMarket.logger.info("[INBOX] Deposited $itemAmount $assetId to $uuid's inbox.")
+        }
+        if (coinAmount > 0) {
+             BlockMarket.logger.info("[INBOX] Deposited $coinAmount coins to $uuid's inbox.")
         }
     }
 
@@ -41,6 +46,12 @@ class EscrowManager {
 
     fun lockCoins(uuid: UUID, amount: Coins) {
         lockedCoins[uuid] = lockedCoins.getOrDefault(uuid, 0L) + amount
+        BlockMarket.logger.debug(
+            "[ESCROW] Locked {} coins for player {}. Total locked: {}",
+            amount,
+            uuid,
+            lockedCoins[uuid]
+        )
     }
 
     fun unlockCoins(uuid: UUID, amount: Coins) {

@@ -37,6 +37,12 @@ object TradeService {
         val item = Registries.ITEM.get(itemIdentifier)
         var passesSecurityCheck = true
 
+        if (item == Registries.ITEM.get(Identifier.of("minecraft", "air")) && payload.assetId != "minecraft:air") {
+            BlockMarket.logger.warn("[SECURITY] Player ${player.name.string} sent an order for an invalid item ID: ${payload.assetId}")
+            player.sendMessage(Text.literal("§cInvalid item requested!"), false)
+            return
+        }
+
         // --- 1. SECURITY CHECKS ---
         if (payload.isBuy) {
             val balance = BlockMarket.orchestrator.walletManager.getBalance(uuid)
@@ -44,12 +50,14 @@ object TradeService {
 
             if (!payload.isMarket && balance < estimatedCost) {
                 passesSecurityCheck = false
+                BlockMarket.logger.warn("Security block: ${player.name.string} attempted to buy without enough coins.")
                 player.sendMessage(Text.literal("§cYou don't have enough coins for this limit order!"), false)
             }
         } else {
             val itemCount = player.inventory.count(item)
             if (itemCount < payload.shares) {
                 passesSecurityCheck = false
+                BlockMarket.logger.warn("Security block: ${player.name.string} attempted to sell ${payload.shares}x ${payload.assetId} but only had $itemCount.")
                 player.sendMessage(Text.literal("§cYou don't have enough ${payload.assetId} in your inventory!"), false)
             }
         }

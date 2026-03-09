@@ -1,5 +1,6 @@
 package com.apsurt.blockmarket.engine
 
+import com.apsurt.blockmarket.BlockMarket
 import java.util.PriorityQueue
 import kotlin.math.min
 
@@ -46,7 +47,9 @@ class OrderBook(val assetId: AssetId) {
                 currentFunds -= (actualTradeAmount * tradePrice)
                 lastTradedPrice = tradePrice
 
-                trades.add(Trade(assetId, incomingOrder.ownerId, bestAsk.ownerId, actualTradeAmount, tradePrice))
+                val trade = Trade(assetId, incomingOrder.ownerId, bestAsk.ownerId, actualTradeAmount, tradePrice)
+                trades.add(trade)
+                BlockMarket.logger.info("[TRADE] MATCH: ${trade.amount}x $assetId @ ${trade.price}¢ | Buyer: ${trade.buyerId} <-> Seller: ${trade.sellerId}")
 
                 if (bestAsk.isFullyFilled) asks.poll()
                 if (actualTradeAmount < desiredAmount) break
@@ -69,7 +72,9 @@ class OrderBook(val assetId: AssetId) {
                 bestBid.filledAmount += actualTradeAmount
                 lastTradedPrice = tradePrice
 
-                trades.add(Trade(assetId, bestBid.ownerId, incomingOrder.ownerId, actualTradeAmount, tradePrice))
+                val trade = Trade(assetId, bestBid.ownerId, incomingOrder.ownerId, actualTradeAmount, tradePrice)
+                trades.add(trade)
+                BlockMarket.logger.info("[TRADE] MATCH: ${trade.amount}x $assetId @ ${trade.price}¢ | Buyer: ${trade.buyerId} <-> Seller: ${trade.sellerId}")
 
                 if (bestBid.isFullyFilled) bids.poll()
             }
