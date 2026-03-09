@@ -1,5 +1,6 @@
 package com.apsurt.blockmarket.client.ui.screen
 
+import com.apsurt.blockmarket.client.ui.widget.OrderBookWidget
 import com.apsurt.blockmarket.network.MarketSyncPayload
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
@@ -12,11 +13,21 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
     private val backgroundHeight = 220
     private var x: Int = 0
     private var y: Int = 0
+    private lateinit var orderBookWidget: OrderBookWidget
 
     override fun init() {
         super.init()
         this.x = (this.width - backgroundWidth) / 2
         this.y = (this.height - backgroundHeight) / 2
+
+        orderBookWidget = OrderBookWidget(
+            x = this.x + 10,
+            y = this.y + 55,
+            width = 140,
+            height = 150,
+            data = this.data,
+            textRenderer = this.textRenderer
+        )
 
         // Calculate best prices from the payload
         // Best Ask = Lowest price someone is willing to sell for
@@ -73,6 +84,10 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
 
         // Draw a neat separator line under the header
         context.fill(x + 10, y + 25, x + backgroundWidth - 10, y + 26, 0xFF555556.toInt())
+
+        // Order Book Title (Left side)
+        context.drawText(this.textRenderer, "Order Book", x + 10, y + 40, 0xFFAAAAAA.toInt(), false)
+        orderBookWidget.render(context, mouseX, mouseY, delta)
 
         // Trade Panel Title (Right side)
         context.drawText(this.textRenderer, "Quick Trade", x + 170, y + 40, 0xFFAAAAAA.toInt(), false)
