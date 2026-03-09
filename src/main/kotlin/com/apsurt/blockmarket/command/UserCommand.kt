@@ -4,15 +4,22 @@ import com.apsurt.blockmarket.BlockMarket
 import com.apsurt.blockmarket.engine.Order
 import com.apsurt.blockmarket.engine.OrderSide
 import com.apsurt.blockmarket.engine.OrderType
+import com.apsurt.blockmarket.network.MarketSyncPayload
+import com.apsurt.blockmarket.network.OrderEntry
+
 import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.arguments.LongArgumentType
 import com.mojang.brigadier.arguments.StringArgumentType
+
 import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.server.command.CommandManager.argument
 import net.minecraft.server.command.CommandManager.literal
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.text.Text
+
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking
+
 
 object UserCommand {
     fun register(dispatcher: CommandDispatcher<ServerCommandSource>) {
@@ -188,7 +195,20 @@ object UserCommand {
                 .then(literal("market")
                     .executes { context ->
                         val player = context.source.player ?: return@executes 0
-                        player.sendMessage(Text.literal("§d[Opening Market UI...]"), false)
+                        // TODO: Remove hardcoded assetId and allow players to pass it as a command argument (e.g., /bm market minecraft:iron_ingot)
+                        val assetId = "minecraft:diamond" // Hardcoded for now as requested
+
+                        val balance = BlockMarket.orchestrator.walletManager.getBalance(player.uuid)
+
+                        // TODO: Implement MarketOrchestrator.getTopOrders(assetId, limit = 50)
+                        val payload = MarketSyncPayload(
+                            assetId = assetId,
+                            playerBalance = balance,
+                            bids = listOf(OrderEntry(100L, 5), OrderEntry(95L, 10)), // Dummy data for UI testing
+                            asks = listOf(OrderEntry(105L, 2), OrderEntry(110L, 8))  // Dummy data for UI testing
+                        )
+
+                        ServerPlayNetworking.send(player, payload)
                         1
                     }
                     .then(literal("inbox")

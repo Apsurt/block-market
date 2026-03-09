@@ -3,9 +3,13 @@ package com.apsurt.blockmarket
 import com.apsurt.blockmarket.command.*
 import com.apsurt.blockmarket.data.MarketState
 import com.apsurt.blockmarket.engine.MarketOrchestrator
+import com.apsurt.blockmarket.network.MarketSyncPayload
+
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry
+
 import org.slf4j.LoggerFactory
 
 object BlockMarket : ModInitializer {
@@ -14,7 +18,9 @@ object BlockMarket : ModInitializer {
     val orchestrator = MarketOrchestrator()
 
     override fun onInitialize() {
-        logger.info("Initializing the Free Market!")
+        logger.info("Initializing the Block Market")
+
+        PayloadTypeRegistry.playS2C().register(MarketSyncPayload.ID, MarketSyncPayload.CODEC)
 
         // 1. Load the Persistent Data when the server starts
         ServerLifecycleEvents.SERVER_STARTED.register { server ->
