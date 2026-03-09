@@ -4,6 +4,8 @@ import com.apsurt.blockmarket.BlockMarket
 import com.apsurt.blockmarket.network.OrderEntry
 import com.apsurt.blockmarket.network.MarketOverviewPayload
 import com.apsurt.blockmarket.network.AssetSummary
+
+import net.minecraft.registry.Registries
 import java.util.UUID
 
 class MarketOrchestrator {
@@ -39,15 +41,32 @@ class MarketOrchestrator {
     fun getMarketOverview(playerUuid: UUID): MarketOverviewPayload {
         val balance = walletManager.getBalance(playerUuid)
 
-        // TODO provide real data
-        val dummyAssets = listOf(
-            AssetSummary("minecraft:diamond", 237L, 241L, 1540L, 12.5),
-            AssetSummary("minecraft:iron_ingot", 15L, 16L, 8500L, -2.4),
-            AssetSummary("minecraft:gold_ingot", 45L, 48L, 3200L, 5.1),
-            AssetSummary("minecraft:emerald", 120L, 125L, 940L, 0.0)
-        )
+        // Iterate over EVERY item registered in Minecraft
+        val allAssets = Registries.ITEM.ids
+            .filter { it.path != "air" } // Nobody needs to buy air!
+            .map { identifier ->
+                val assetId = identifier.toString()
 
-        return MarketOverviewPayload(balance, dummyAssets)
+                // Fetch the live book if it exists, otherwise it will just be null
+                val book = orderBooks[assetId]
+
+                val bestBid = book?.bids?.peek()?.price ?: 0L
+                val bestAsk = book?.asks?.peek()?.price ?: 0L
+
+                // TODO: Track trade history
+                val volume24h = 0L
+                val changePercent = 0.0
+
+                AssetSummary(
+                    assetId = assetId,
+                    bestBid = bestBid,
+                    bestAsk = bestAsk,
+                    volume24h = volume24h,
+                    changePercent = changePercent
+                )
+            }.sortedBy { it.assetId }
+
+        return MarketOverviewPayload(balance, allAssets)
     }
 
     /**

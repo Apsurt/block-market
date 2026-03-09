@@ -1,3 +1,7 @@
+// TODO Add scrollbar
+// TODO Aggregate similar?
+// TODO Decrease fontsize for long names
+
 package com.apsurt.blockmarket.client.ui.screen
 
 import com.apsurt.blockmarket.network.AssetSummary
