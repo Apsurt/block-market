@@ -61,27 +61,28 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         }.dimensions(panelX + 74, panelY, 71, 20).build()
 
         // --- MODE TOGGLE (Limit / Market) ---
+        // --- MODE TOGGLE (Limit / Market) ---
         modeButton = ButtonWidget.builder(Text.literal(if (isMarketOrder) "Market" else "Limit")) { button ->
             isMarketOrder = !isMarketOrder
             button.message = Text.literal(if (isMarketOrder) "Market" else "Limit")
 
-            if (isMarketOrder) {
-                priceField.text = "Auto"
-                priceField.setEditable(false)
-            } else {
-                priceField.setEditable(true)
+            // Hide or show the price field based on the mode
+            priceField.visible = !isMarketOrder
+            priceField.active = !isMarketOrder
+
+            if (!isMarketOrder) {
                 updateOptimalPrice()
             }
         }.dimensions(panelX + 85, panelY + 27, 60, 16).build()
 
         // --- TEXT FIELDS ---
         priceField = TextFieldWidget(this.textRenderer, panelX, panelY + 45, panelWidth, 16, Text.empty())
-        priceField.setTextPredicate { text -> text.isEmpty() || text == "Auto" || text.matches(Regex("^\\d+$")) }
+        priceField.setTextPredicate { text -> text.isEmpty() || text.matches(Regex("^\\d+$")) }
 
-        if (isMarketOrder) {
-            priceField.text = "Auto"
-            priceField.setEditable(false)
-        } else {
+        priceField.visible = !isMarketOrder
+        priceField.active = !isMarketOrder
+
+        if (!isMarketOrder) {
             updateOptimalPrice()
         }
 
@@ -198,8 +199,9 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         }
 
         // Labels
-        val priceLabel = if (isMarketOrder) "Market Order" else "Limit Price (¢)"
-        context.drawText(this.textRenderer, priceLabel, panelX, panelY + 31, 0xFFAAAAAA.toInt(), false)
+        if (!isMarketOrder) {
+            context.drawText(this.textRenderer, "Limit Price (¢)", panelX, panelY + 31, 0xFFAAAAAA.toInt(), false)
+        }
         context.drawText(this.textRenderer, "Shares", panelX, panelY + 67, 0xFFAAAAAA.toInt(), false)
         context.drawText(this.textRenderer, "Total", panelX, panelY + 105, 0xFFAAAAAA.toInt(), false)
 
