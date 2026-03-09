@@ -5,6 +5,7 @@ import com.apsurt.blockmarket.network.MarketSyncPayload
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.ButtonWidget
+import net.minecraft.client.gui.Click
 import net.minecraft.text.Text
 
 class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Market: ${data.assetId}")) {
@@ -105,6 +106,22 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
             return true
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
+    }
+
+    override fun mouseClicked(click: Click, doubled: Boolean): Boolean {
+        // We unpack the Click record to pass the raw numbers to our custom widget
+        if (orderBookWidget.onMouseClicked(click.x(), click.y(), click.button())) return true
+        return super.mouseClicked(click, doubled)
+    }
+
+    override fun mouseDragged(click: Click, deltaX: Double, deltaY: Double): Boolean {
+        if (orderBookWidget.onMouseDragged(click.x(), click.y(), click.button(), deltaX, deltaY)) return true
+        return super.mouseDragged(click, deltaX, deltaY)
+    }
+
+    override fun mouseReleased(click: Click): Boolean {
+        if (orderBookWidget.onMouseReleased(click.x(), click.y(), click.button())) return true
+        return super.mouseReleased(click)
     }
 
     override fun shouldPause(): Boolean = false
