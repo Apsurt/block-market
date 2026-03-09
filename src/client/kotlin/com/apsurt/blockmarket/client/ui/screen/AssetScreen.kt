@@ -2,16 +2,21 @@ package com.apsurt.blockmarket.client.ui.screen
 
 import com.apsurt.blockmarket.client.ui.widget.OrderBookWidget
 import com.apsurt.blockmarket.network.MarketSyncPayload
+import com.apsurt.blockmarket.network.RequestHomePayload
+
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.widget.TextFieldWidget
+import net.minecraft.client.input.KeyInput
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.Registries
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 import java.util.Locale.getDefault
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
+import org.lwjgl.glfw.GLFW
 
 class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Market: ${data.assetId}")) {
 
@@ -218,6 +223,22 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
         if (orderBookWidget.onMouseScrolled(mouseX, mouseY, verticalAmount)) return true
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
+    }
+
+    override fun keyPressed(input: KeyInput): Boolean {
+        // Unpack the KeyInput to get the GLFW key code
+        if (input.key == GLFW.GLFW_KEY_ESCAPE) {
+            // Send the request to go back to Home
+            ClientPlayNetworking.send(RequestHomePayload)
+            return true // Tell Minecraft we handled the input
+        }
+
+        // Let the text fields handle typing (numbers, etc.)
+        if (this.priceField.keyPressed(input) || this.sharesField.keyPressed(input)) {
+            return true
+        }
+
+        return super.keyPressed(input)
     }
 
     override fun shouldPause(): Boolean = false

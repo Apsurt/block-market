@@ -2,7 +2,8 @@ package com.apsurt.blockmarket.client.ui.screen
 
 import com.apsurt.blockmarket.network.AssetSummary
 import com.apsurt.blockmarket.network.MarketOverviewPayload
-import net.minecraft.client.MinecraftClient
+import com.apsurt.blockmarket.network.OpenAssetPayload
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.screen.Screen
@@ -189,8 +190,8 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
             if (clickedIndex in filteredAssets.indices) {
                 val clickedAsset = filteredAssets[clickedIndex]
 
-                // TODO: Request the AssetScreen payload for this specific item!
-                println("Clicked on: ${clickedAsset.assetId}")
+                // Send the request to the server
+                ClientPlayNetworking.send(OpenAssetPayload(clickedAsset.assetId))
                 return true
             }
         }
