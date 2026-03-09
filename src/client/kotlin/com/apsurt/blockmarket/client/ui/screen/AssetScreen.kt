@@ -21,10 +21,10 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         this.y = (this.height - backgroundHeight) / 2
 
         orderBookWidget = OrderBookWidget(
-            x = this.x + 10,
-            y = this.y + 55,
-            width = 140,
-            height = 150,
+            x = this.x + 15, // Added 15px left margin
+            y = this.y + 60, // Pushed down to leave room for static headers
+            width = 130,     // Slightly narrower
+            height = this.backgroundHeight - 75, // Leaves 15px bottom margin
             data = this.data,
             textRenderer = this.textRenderer
         )
@@ -85,15 +85,26 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         // Draw a neat separator line under the header
         context.fill(x + 10, y + 25, x + backgroundWidth - 10, y + 26, 0xFF555556.toInt())
 
-        // Order Book Title (Left side)
-        context.drawText(this.textRenderer, "Order Book", x + 10, y + 40, 0xFFAAAAAA.toInt(), false)
+        // Draw a neat separator line under the main header
+        context.fill(x + 10, y + 25, x + backgroundWidth - 10, y + 26, 0xFF555556.toInt())
+
+        // Left Side: Order Book Titles
+        context.drawText(this.textRenderer, "Order Book", x + 15, y + 32, 0xFFAAAAAA.toInt(), false)
+        context.drawText(this.textRenderer, "PRICE", x + 15, y + 46, 0xFF777777.toInt(), false)
+        context.drawText(this.textRenderer, "SHARES", x + 145 - this.textRenderer.getWidth("SHARES"), y + 46, 0xFF777777.toInt(), false)
         orderBookWidget.render(context, mouseX, mouseY, delta)
 
-        // Trade Panel Title (Right side)
-        context.drawText(this.textRenderer, "Quick Trade", x + 170, y + 40, 0xFFAAAAAA.toInt(), false)
+        // Right Side: Quick Trade Title
+        context.drawText(this.textRenderer, "Quick Trade", x + 170, y + 32, 0xFFAAAAAA.toInt(), false)
+    }
 
-        // Order Book Title Placeholder (Left side)
-        context.drawText(this.textRenderer, "Order Book", x + 10, y + 40, 0xFFAAAAAA.toInt(), false)
+    // This catches the scroll wheel while the screen is open
+    override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
+        // Pass it to our widget first. If the widget handles it (hovered), stop processing.
+        if (orderBookWidget.onMouseScrolled(mouseX, mouseY, verticalAmount)) {
+            return true
+        }
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
     }
 
     override fun shouldPause(): Boolean = false
