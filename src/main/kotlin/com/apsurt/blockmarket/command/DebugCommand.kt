@@ -20,7 +20,7 @@ object DebugCommand {
 
                 .then(literal("populate")
                     .executes { context ->
-                        val items = listOf("minecraft:diamond", "minecraft:iron_ingot", "minecraft:gold_ingot", "minecraft:emerald")
+                        val items = listOf("minecraft:diamond", "minecraft:emerald")
                         val botUuid = UUID.fromString("00000000-0000-0000-0000-000000000000") // A static "Bot" UUID
 
                         // Give the bot unlimited resources to back the orders
@@ -28,8 +28,8 @@ object DebugCommand {
 
                         items.forEach { itemId ->
                             // Create Asks (Sellers)
-                            repeat(50) {
-                                val price = Random.nextLong(50, 150)
+                            repeat(500) {
+                                val price = Random.nextLong(10, 1000)
                                 val amount = Random.nextInt(1, 10)
 
                                 // Manually lock items for the bot so the Orchestrator doesn't fail
