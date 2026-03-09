@@ -103,6 +103,13 @@ object BlockMarket : ModInitializer {
             // --- EXECUTION & UI REFRESH ---
             if (passesSecurityCheck) {
 
+                // ADD THIS TO DEDUCT THE ITEMS:
+                if (!isBuy && !player.isCreative) {
+                    // This tells Minecraft to search the inventory for this specific item
+                    // and physically delete 'shares' amount of it!
+                    player.inventory.remove({ it.isOf(item) }, shares, player.inventory)
+                }
+
                 // Map the booleans to your domain Enums
                 val orderSide = if (isBuy) OrderSide.BUY else OrderSide.SELL
                 val orderType = if (isMarket) OrderType.MARKET else OrderType.LIMIT
