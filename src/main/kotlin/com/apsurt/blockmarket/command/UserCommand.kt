@@ -195,17 +195,20 @@ object UserCommand {
                 .then(literal("market")
                     .executes { context ->
                         val player = context.source.player ?: return@executes 0
-                        // TODO: Remove hardcoded assetId and allow players to pass it as a command argument (e.g., /bm market minecraft:iron_ingot)
-                        val assetId = "minecraft:diamond" // Hardcoded for now as requested
+
+                        // TODO: Allow players to specify asset via argument (/bm market minecraft:iron_ingot)
+                        val assetId = "minecraft:diamond"
 
                         val balance = BlockMarket.orchestrator.walletManager.getBalance(player.uuid)
 
-                        // TODO: Implement MarketOrchestrator.getTopOrders(assetId, limit = 50)
+                        // Fetch the LIVE data from your engine!
+                        val (liveBids, liveAsks) = BlockMarket.orchestrator.getTopOrders(assetId, 5)
+
                         val payload = MarketSyncPayload(
                             assetId = assetId,
                             playerBalance = balance,
-                            bids = listOf(OrderEntry(100L, 5), OrderEntry(95L, 10)), // Dummy data for UI testing
-                            asks = listOf(OrderEntry(105L, 2), OrderEntry(110L, 8))  // Dummy data for UI testing
+                            bids = liveBids,
+                            asks = liveAsks
                         )
 
                         ServerPlayNetworking.send(player, payload)

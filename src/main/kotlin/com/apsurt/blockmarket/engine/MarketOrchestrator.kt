@@ -1,5 +1,7 @@
 package com.apsurt.blockmarket.engine
 
+import com.apsurt.blockmarket.network.OrderEntry
+
 class MarketOrchestrator {
     val walletManager = WalletManager()
     val escrowManager = EscrowManager()
@@ -9,6 +11,25 @@ class MarketOrchestrator {
 
     private fun getOrderBook(assetId: AssetId): OrderBook {
         return orderBooks.getOrPut(assetId) { OrderBook(assetId) }
+    }
+
+    fun getTopOrders(assetId: AssetId, limit: Int = 5): Pair<List<OrderEntry>, List<OrderEntry>> {
+        val book = orderBooks[assetId] ?: return Pair(emptyList(), emptyList())
+
+        // PriorityQueues don't guarantee strict iteration order, so we convert to a list and sort
+        val topBids = book.bids.toList()
+            .groupBy { it.price }
+            .map { OrderEntry(it.key, it.value.sumOf { order -> order.amountRemaining }) }
+            .sortedByDescending { it.price } // Highest buyers first
+            .take(limit)
+
+        val topAsks = book.asks.toList()
+            .groupBy { it.price }
+            .map { OrderEntry(it.key, it.value.sumOf { order -> order.amountRemaining }) }
+            .sortedBy { it.price } // Lowest sellers first
+            .take(limit)
+
+        return Pair(topBids, topAsks)
     }
 
     /**
