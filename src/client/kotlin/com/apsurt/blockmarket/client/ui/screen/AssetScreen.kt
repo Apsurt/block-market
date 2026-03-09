@@ -3,6 +3,7 @@ package com.apsurt.blockmarket.client.ui.screen
 import com.apsurt.blockmarket.client.ui.widget.OrderBookWidget
 import com.apsurt.blockmarket.network.MarketSyncPayload
 import com.apsurt.blockmarket.network.RequestHomePayload
+import com.apsurt.blockmarket.network.PlaceOrderPayload
 
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
@@ -95,10 +96,15 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
             val shares = sharesField.text.toIntOrNull() ?: 0
 
             if ((isMarketOrder || price > 0) && shares > 0) {
-                val modeStr = if (isMarketOrder) "MARKET" else "LIMIT"
-                val typeStr = if (isBuyTab) "BUY" else "SELL"
-                // TODO: Send Custom Payload to Server to place order
-                println("Sending Order -> Type: $typeStr, Mode: $modeStr, Price: $price, Shares: $shares")
+                // Construct and send the payload to the server
+                val payload = PlaceOrderPayload(
+                    assetId = data.assetId,
+                    isBuy = isBuyTab,
+                    isMarket = isMarketOrder,
+                    price = price,
+                    shares = shares
+                )
+                ClientPlayNetworking.send(payload)
             }
         }.dimensions(panelX, panelY + 120, panelWidth, 20).build()
 

@@ -1,12 +1,20 @@
 package com.apsurt.blockmarket
 
 import com.apsurt.blockmarket.command.*
+import com.apsurt.blockmarket.engine.Order
 import com.apsurt.blockmarket.data.MarketState
 import com.apsurt.blockmarket.engine.MarketOrchestrator
+import com.apsurt.blockmarket.engine.OrderSide
+import com.apsurt.blockmarket.engine.OrderType
 import com.apsurt.blockmarket.network.MarketSyncPayload
 import com.apsurt.blockmarket.network.OpenAssetPayload
 import com.apsurt.blockmarket.network.MarketOverviewPayload
 import com.apsurt.blockmarket.network.RequestHomePayload
+import com.apsurt.blockmarket.network.PlaceOrderPayload
+
+import net.minecraft.registry.Registries
+import net.minecraft.util.Identifier
+import net.minecraft.text.Text
 
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -54,6 +62,77 @@ object BlockMarket : ModInitializer {
             val player = context.player()
             val overview = orchestrator.getMarketOverview(player.uuid)
             ServerPlayNetworking.send(player, overview)
+        }
+
+        PayloadTypeRegistry.playC2S().register(PlaceOrderPayload.ID, PlaceOrderPayload.CODEC)
+        ServerPlayNetworking.registerGlobalReceiver(PlaceOrderPayload.ID) { payload, context ->
+            val player = context.player()
+            val uuid = player.uuid
+
+            val assetId = payload.assetId
+            val isBuy = payload.isBuy
+            val isMarket = payload.isMarket
+            val price = payload.price
+            val shares = payload.shares
+
+            val itemIdentifier = Identifier.of(assetId)
+            val item = Registries.ITEM.get(itemIdentifier)
+
+            var passesSecurityCheck = true
+
+            if (isBuy) {
+                // Check Wallet Balance
+                val balance = orchestrator.walletManager.getBalance(uuid)
+                val estimatedCost = if (isMarket) 0L else price * shares
+
+                // For Limit orders, we know exactly how much they need.
+                // (For Market orders, the orchestrator handles checking balance during the book sweep)
+                if (!isMarket && balance < estimatedCost) {
+                    passesSecurityCheck = false
+                    player.sendMessage(Text.literal("§cYou don't have enough coins for this limit order!"), false)
+                }
+            } else {
+                // Check Minecraft Inventory for Sellers
+                val itemCount = player.inventory.count(item)
+                if (itemCount < shares) {
+                    passesSecurityCheck = false
+                    player.sendMessage(Text.literal("§cYou don't have enough $assetId in your inventory!"), false)
+                }
+            }
+
+            // --- EXECUTION & UI REFRESH ---
+            if (passesSecurityCheck) {
+
+                // Map the booleans to your domain Enums
+                val orderSide = if (isBuy) OrderSide.BUY else OrderSide.SELL
+                val orderType = if (isMarket) OrderType.MARKET else OrderType.LIMIT
+
+                // Construct the Order exactly as your data class expects
+                val newOrder = Order(
+                    ownerId = player.uuid,
+                    assetId = assetId, // Assuming AssetId is a typealias for String, otherwise wrap it: AssetId(assetId)
+                    side = orderSide,
+                    type = orderType,
+                    price = price,     // Assuming Coins is a typealias for Long
+                    initialAmount = shares
+                )
+
+                // Pass the correctly formatted Order object to your Orchestrator
+                val trades = orchestrator.placeOrder(newOrder)
+
+                // Fetch the newly updated order book and wallet balance
+                val newBalance = orchestrator.walletManager.getBalance(uuid)
+                val (liveBids, liveAsks) = orchestrator.getTopOrders(assetId, 50)
+
+                // Fire the Sync Packet back to the player to instantly refresh their UI!
+                val syncPayload = MarketSyncPayload(
+                    assetId = assetId,
+                    playerBalance = newBalance,
+                    bids = liveBids,
+                    asks = liveAsks
+                )
+                ServerPlayNetworking.send(player, syncPayload)
+            }
         }
 
         // 2. Load the Persistent Data when the server starts
