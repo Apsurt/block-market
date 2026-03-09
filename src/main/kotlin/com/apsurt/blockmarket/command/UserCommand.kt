@@ -202,7 +202,7 @@ object UserCommand {
                         val balance = BlockMarket.orchestrator.walletManager.getBalance(player.uuid)
 
                         // Fetch the LIVE data from your engine!
-                        val (liveBids, liveAsks) = BlockMarket.orchestrator.getTopOrders(assetId, 5)
+                        val (liveBids, liveAsks) = BlockMarket.orchestrator.getTopOrders(assetId, 50)
 
                         val payload = MarketSyncPayload(
                             assetId = assetId,
