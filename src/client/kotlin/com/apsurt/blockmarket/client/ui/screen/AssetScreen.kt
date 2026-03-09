@@ -61,7 +61,7 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         }.dimensions(panelX + 74, panelY, 71, 20).build()
 
         // --- MODE TOGGLE (Limit / Market) ---
-        modeButton = ButtonWidget.builder(Text.literal("Limit")) { button ->
+        modeButton = ButtonWidget.builder(Text.literal(if (isMarketOrder) "Market" else "Limit")) { button ->
             isMarketOrder = !isMarketOrder
             button.message = Text.literal(if (isMarketOrder) "Market" else "Limit")
 
@@ -77,6 +77,13 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         // --- TEXT FIELDS ---
         priceField = TextFieldWidget(this.textRenderer, panelX, panelY + 45, panelWidth, 16, Text.empty())
         priceField.setTextPredicate { text -> text.isEmpty() || text == "Auto" || text.matches(Regex("^\\d+$")) }
+
+        if (isMarketOrder) {
+            priceField.text = "Auto"
+            priceField.setEditable(false)
+        } else {
+            updateOptimalPrice()
+        }
 
         sharesField = TextFieldWidget(this.textRenderer, panelX, panelY + 79, panelWidth, 16, Text.empty())
         sharesField.setTextPredicate { text -> text.isEmpty() || text.matches(Regex("^\\d+$")) }
