@@ -7,6 +7,11 @@ import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.widget.ButtonWidget
 import net.minecraft.client.gui.Click
 import net.minecraft.text.Text
+import net.minecraft.item.ItemStack
+import net.minecraft.registry.Registries
+import net.minecraft.util.Identifier
+import java.util.Locale
+import java.util.Locale.getDefault
 
 class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Market: ${data.assetId}")) {
 
@@ -76,12 +81,21 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         // This calls renderBackground automatically, then draws the registered buttons
         super.render(context, mouseX, mouseY, delta)
 
-        // Header Text
-        val assetNameText = "Asset: ${data.assetId.substringAfter(':').uppercase()}"
-        context.drawText(this.textRenderer, assetNameText, x + 10, y + 10, 0xFFFFFFFF.toInt(), false)
+        val itemIdentifier = Identifier.of(data.assetId)
+        val item = Registries.ITEM.get(itemIdentifier)
+        val itemStack = ItemStack(item)
+
+        // Draw the item at the top left. (Items are 16x16 pixels)
+        // We use y + 6 so it vertically aligns nicely with the text at y + 10
+        context.drawItem(itemStack, x + 10, y + 6)
+
+        // 2. Draw Header Text
+        val assetNameText = data.assetId.substringAfter(':')
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }
+        context.drawText(this.textRenderer, assetNameText, x + 30, y + 11, 0xFFFFFFFF.toInt(), false)
 
         val balanceText = "Balance: ${data.playerBalance} Coins"
-        context.drawText(this.textRenderer, balanceText, x + backgroundWidth - this.textRenderer.getWidth(balanceText) - 10, y + 10, 0xFF55FF55.toInt(), false)
+        context.drawText(this.textRenderer, balanceText, x + backgroundWidth - this.textRenderer.getWidth(balanceText) - 10, y + 11, 0xFF55FF55.toInt(), false)
 
         // Draw a neat separator line under the header
         context.fill(x + 10, y + 25, x + backgroundWidth - 10, y + 26, 0xFF555556.toInt())
