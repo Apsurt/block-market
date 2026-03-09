@@ -196,21 +196,10 @@ object UserCommand {
                     .executes { context ->
                         val player = context.source.player ?: return@executes 0
 
-                        // TODO: Allow players to specify asset via argument (/bm market minecraft:iron_ingot)
-                        val assetId = "minecraft:diamond"
+                        // Fetch the overview data from the orchestrator
+                        val payload = BlockMarket.orchestrator.getMarketOverview(player.uuid)
 
-                        val balance = BlockMarket.orchestrator.walletManager.getBalance(player.uuid)
-
-                        // Fetch the LIVE data from your engine!
-                        val (liveBids, liveAsks) = BlockMarket.orchestrator.getTopOrders(assetId, 50)
-
-                        val payload = MarketSyncPayload(
-                            assetId = assetId,
-                            playerBalance = balance,
-                            bids = liveBids,
-                            asks = liveAsks
-                        )
-
+                        // Send the new payload to open the HomeScreen
                         ServerPlayNetworking.send(player, payload)
                         1
                     }

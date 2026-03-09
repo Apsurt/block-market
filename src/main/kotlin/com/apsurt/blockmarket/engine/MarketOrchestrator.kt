@@ -1,6 +1,9 @@
 package com.apsurt.blockmarket.engine
 
 import com.apsurt.blockmarket.network.OrderEntry
+import com.apsurt.blockmarket.network.MarketOverviewPayload
+import com.apsurt.blockmarket.network.AssetSummary
+import java.util.UUID
 
 class MarketOrchestrator {
     val walletManager = WalletManager()
@@ -30,6 +33,20 @@ class MarketOrchestrator {
             .take(limit)
 
         return Pair(topBids, topAsks)
+    }
+
+    fun getMarketOverview(playerUuid: UUID): MarketOverviewPayload {
+        val balance = walletManager.getBalance(playerUuid)
+
+        // TODO provide real data
+        val dummyAssets = listOf(
+            AssetSummary("minecraft:diamond", 237L, 241L, 1540L, 12.5),
+            AssetSummary("minecraft:iron_ingot", 15L, 16L, 8500L, -2.4),
+            AssetSummary("minecraft:gold_ingot", 45L, 48L, 3200L, 5.1),
+            AssetSummary("minecraft:emerald", 120L, 125L, 940L, 0.0)
+        )
+
+        return MarketOverviewPayload(balance, dummyAssets)
     }
 
     /**

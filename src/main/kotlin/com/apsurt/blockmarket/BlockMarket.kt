@@ -4,6 +4,7 @@ import com.apsurt.blockmarket.command.*
 import com.apsurt.blockmarket.data.MarketState
 import com.apsurt.blockmarket.engine.MarketOrchestrator
 import com.apsurt.blockmarket.network.MarketSyncPayload
+import com.apsurt.blockmarket.network.MarketOverviewPayload
 
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -21,6 +22,7 @@ object BlockMarket : ModInitializer {
         logger.info("Initializing the Block Market")
 
         PayloadTypeRegistry.playS2C().register(MarketSyncPayload.ID, MarketSyncPayload.CODEC)
+        PayloadTypeRegistry.playS2C().register(MarketOverviewPayload.ID, MarketOverviewPayload.CODEC)
 
         // 1. Load the Persistent Data when the server starts
         ServerLifecycleEvents.SERVER_STARTED.register { server ->
