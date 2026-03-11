@@ -35,6 +35,13 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
     private var scrollY = 0.0
     private val rowHeight = 22
 
+    private var isDraggingScrollbar = false
+    private fun getMaxScroll(): Double {
+        val listHeight = bgHeight - 90
+        val totalHeight = filteredAssets.size * rowHeight
+        return max(0.0, (totalHeight - listHeight).toDouble())
+    }
+
     override fun init() {
         super.init()
         this.x = (this.width - bgWidth) / 2
@@ -113,6 +120,25 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
         }
 
         context.disableScissor()
+
+        // --- 4. DRAW SCROLLBAR ---
+        val maxScroll = getMaxScroll()
+        if (maxScroll > 0) {
+            val listY = y + 82
+            val listHeight = bgHeight - 90
+            val trackX = x + bgWidth - 6 // Right edge
+
+            // Track background
+            context.fill(trackX, listY, trackX + 4, listY + listHeight, 0xFF222222.toInt())
+
+            // Draggable Thumb
+            val totalHeight = filteredAssets.size * rowHeight
+            val thumbHeight = max(20.0, (listHeight.toDouble() / totalHeight.toDouble()) * listHeight)
+            val thumbY = listY + (scrollY / maxScroll) * (listHeight - thumbHeight)
+
+            val thumbColor = if (isDraggingScrollbar) 0xFFAAAAAA.toInt() else 0xFF666666.toInt()
+            context.fill(trackX, thumbY.toInt(), trackX + 4, (thumbY + thumbHeight).toInt(), thumbColor)
+        }
     }
 
     private fun drawHeader(context: DrawContext, label: String, hX: Int, hY: Int, colId: String, mX: Int, mY: Int) {
@@ -160,7 +186,20 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
             return super.mouseClicked(click, doubled)
         }
 
-        // 1. Check Header Clicks for Sorting
+        val listY = y + 82
+        val listHeight = bgHeight - 90
+        val maxScroll = getMaxScroll()
+
+        // 1. Check Scrollbar Click
+        if (maxScroll > 0) {
+            val trackX = x + bgWidth - 6
+            if (click.x >= trackX && click.x <= trackX + 4 && click.y >= listY && click.y <= listY + listHeight) {
+                isDraggingScrollbar = true
+                return true
+            }
+        }
+
+        // 2. Check Header Clicks for Sorting
         val headerY = y + 67
         if (click.y >= headerY && click.y <= headerY + 12) {
             val clickXInt = click.x.toInt() // Convert the Double to an Int
@@ -182,10 +221,7 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
             }
         }
 
-        // 2. Check Row Clicks
-        val listY = y + 82
-        val listHeight = bgHeight - 90
-
+        // 3. Check Row Clicks
         // Only allow clicks if the mouse is inside the list boundaries
         if (click.y >= listY && click.y <= listY + listHeight && click.x >= x + 10 && click.x <= x + bgWidth - 10) {
             val clickYOffset = click.y - listY + scrollY
@@ -203,15 +239,34 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
         return super.mouseClicked(click, doubled)
     }
 
+    override fun mouseDragged(click: Click, deltaX: Double, deltaY: Double): Boolean {
+        if (isDraggingScrollbar && getMaxScroll() > 0) {
+            val listHeight = bgHeight - 90
+            val totalHeight = filteredAssets.size * rowHeight
+            val thumbHeight = max(20.0, (listHeight.toDouble() / totalHeight.toDouble()) * listHeight)
+
+            // Calculate how many pixels of content should scroll per 1 pixel of mouse drag
+            val scrollPerPixel = getMaxScroll() / (listHeight - thumbHeight)
+            scrollY = MathHelper.clamp(scrollY + deltaY * scrollPerPixel, 0.0, getMaxScroll())
+            return true
+        }
+        return super.mouseDragged(click, deltaX, deltaY)
+    }
+
+    override fun mouseReleased(click: Click): Boolean {
+        if (isDraggingScrollbar) {
+            isDraggingScrollbar = false
+            return true
+        }
+        return super.mouseReleased(click)
+    }
+
     override fun mouseScrolled(mouseX: Double, mouseY: Double, horizontalAmount: Double, verticalAmount: Double): Boolean {
         val listY = y + 82
         val listHeight = bgHeight - 90
 
-        // Only scroll if hovering over the list
         if (mouseX >= x + 10 && mouseX <= x + bgWidth - 10 && mouseY >= listY && mouseY <= listY + listHeight) {
-            val totalHeight = filteredAssets.size * rowHeight
-            val maxScroll = max(0.0, (totalHeight - listHeight).toDouble())
-            scrollY = MathHelper.clamp(scrollY - verticalAmount * (rowHeight / 2), 0.0, maxScroll)
+            scrollY = MathHelper.clamp(scrollY - verticalAmount * (rowHeight / 2), 0.0, getMaxScroll())
             return true
         }
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount)
