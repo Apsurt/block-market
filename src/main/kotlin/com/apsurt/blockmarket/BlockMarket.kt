@@ -1,6 +1,7 @@
 package com.apsurt.blockmarket
 
 import com.apsurt.blockmarket.command.*
+import com.apsurt.blockmarket.config.MarketConfig
 import com.apsurt.blockmarket.engine.MarketOrchestrator
 
 import net.fabricmc.api.ModInitializer
@@ -13,15 +14,17 @@ object BlockMarket : ModInitializer {
 
     override fun onInitialize() {
         logger.info("Initializing the Block Market")
+        // 1. Load mod config
+        MarketConfig.load()
 
-        // 1. Networking (Register packets and where they go)
+        // 2. Networking (Register packets and where they go)
         ServerNetworking.registerPayloads()
         ServerNetworking.registerReceivers()
 
-        // 2. Persistence (Load/Save data)
+        // 3. Persistence (Load/Save data)
         MarketPersistence.registerEvents()
 
-        // 3. Commands
+        // 4. Commands
         CommandRegistrationCallback.EVENT.register { dispatcher, _, _ ->
             AdminCommand.register(dispatcher)
             UserCommand.register(dispatcher)
