@@ -7,6 +7,7 @@ package com.apsurt.blockmarket.client.ui.screen
 import com.apsurt.blockmarket.network.AssetSummary
 import com.apsurt.blockmarket.network.MarketOverviewPayload
 import com.apsurt.blockmarket.network.OpenAssetPayload
+import com.apsurt.blockmarket.client.util.formatKMB
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
@@ -91,7 +92,7 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
         val playerName = client?.player?.name?.string ?: "Trader"
         context.drawText(textRenderer, "Hello, $playerName", x + 15, y + 15, 0xFFFFFFFF.toInt(), false)
 
-        val balanceText = "Balance: ${data.playerBalance} Coins"
+        val balanceText = "Balance: ${data.playerBalance.formatKMB()} Coins"
         context.drawText(textRenderer, balanceText, x + bgWidth - textRenderer.getWidth(balanceText) - 15, y + 15, 0xFF55FF55.toInt(), false)
 
         context.fill(x + 10, y + 60, x + bgWidth - 10, y + 61, 0xFF555556.toInt())
@@ -167,8 +168,8 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
         context.drawText(textRenderer, name, rX + 30, rY + 7, 0xFFFFFFFF.toInt(), false)
 
         // Bid & Ask
-        val bidText = if (asset.bestBid > 0) "${asset.bestBid}¢" else "-"
-        val askText = if (asset.bestAsk > 0) "${asset.bestAsk}¢" else "-"
+        val bidText = if (asset.bestBid > 0) "${asset.bestBid.formatKMB()}¢" else "-"
+        val askText = if (asset.bestAsk > 0) "${asset.bestAsk.formatKMB()}¢" else "-"
         context.drawText(textRenderer, bidText, rX + 130, rY + 7, 0xFF55FF55.toInt(), false)
         context.drawText(textRenderer, askText, rX + 180, rY + 7, 0xFFFF5555.toInt(), false)
 
@@ -178,7 +179,7 @@ class HomeScreen(private val data: MarketOverviewPayload) : Screen(Text.literal(
         context.drawText(textRenderer, "$sign${asset.changePercent}%", rX + 235, rY + 7, changeColor, false)
 
         // Volume
-        context.drawText(textRenderer, asset.volume24h.toString(), rX + 285, rY + 7, 0xFFAAAAAA.toInt(), false)
+        context.drawText(textRenderer, asset.volume24h.formatKMB(), rX + 285, rY + 7, 0xFFAAAAAA.toInt(), false)
     }
 
     override fun mouseClicked(click: Click, doubled: Boolean): Boolean {

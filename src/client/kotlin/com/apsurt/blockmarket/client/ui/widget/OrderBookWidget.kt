@@ -1,6 +1,8 @@
 package com.apsurt.blockmarket.client.ui.widget
 
 import com.apsurt.blockmarket.network.MarketSyncPayload
+import com.apsurt.blockmarket.client.util.formatKMB
+
 import net.minecraft.client.font.TextRenderer
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.Drawable
@@ -115,8 +117,8 @@ class OrderBookWidget(
             val barWidth = ((cumVolume.toFloat() / maxVolume) * listWidth).toInt()
             context.fill(this.x + listWidth - barWidth, currentY, this.x + listWidth, currentY + rowHeight, 0x33FF5555)
 
-            context.drawText(textRenderer, "${ask.key}¢", this.x + 2, currentY + 3, 0xFFFF5555.toInt(), false)
-            val amountStr = ask.value.toString()
+            context.drawText(textRenderer, "${ask.key.formatKMB()}¢", this.x + 2, currentY + 3, 0xFFFF5555.toInt(), false)
+            val amountStr = ask.value.formatKMB()
             context.drawText(textRenderer, amountStr, this.x + listWidth - textRenderer.getWidth(amountStr) - 2, currentY + 3, 0xFFFFFFFF.toInt(), false)
 
             currentY += rowHeight
@@ -143,8 +145,8 @@ class OrderBookWidget(
             val barWidth = ((cumVolume.toFloat() / maxVolume) * listWidth).toInt()
             context.fill(this.x + listWidth - barWidth, currentY, this.x + listWidth, currentY + rowHeight, 0x3355FF55)
 
-            context.drawText(textRenderer, "${bid.key}¢", this.x + 2, currentY + 3, 0xFF55FF55.toInt(), false)
-            val amountStr = bid.value.toString()
+            context.drawText(textRenderer, "${bid.key.formatKMB()}¢", this.x + 2, currentY + 3, 0xFF55FF55.toInt(), false)
+            val amountStr = bid.value.formatKMB()
             context.drawText(textRenderer, amountStr, this.x + listWidth - textRenderer.getWidth(amountStr) - 2, currentY + 3, 0xFFFFFFFF.toInt(), false)
 
             currentY += rowHeight

@@ -4,6 +4,7 @@ import com.apsurt.blockmarket.client.ui.widget.OrderBookWidget
 import com.apsurt.blockmarket.network.MarketSyncPayload
 import com.apsurt.blockmarket.network.RequestHomePayload
 import com.apsurt.blockmarket.network.PlaceOrderPayload
+import com.apsurt.blockmarket.client.util.formatKMB
 
 import net.minecraft.client.gui.Click
 import net.minecraft.client.gui.DrawContext
@@ -182,7 +183,7 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString() }
         context.drawText(this.textRenderer, assetNameText, x + 30, y + 11, 0xFFFFFFFF.toInt(), false)
 
-        val balanceText = "Balance: ${data.playerBalance} Coins"
+        val balanceText = "Balance: ${data.playerBalance.formatKMB()} Coins"
         context.drawText(this.textRenderer, balanceText, x + backgroundWidth - this.textRenderer.getWidth(balanceText) - 10, y + 11, 0xFF55FF55.toInt(), false)
 
         context.fill(x + 10, y + 25, x + backgroundWidth - 10, y + 26, 0xFF555556.toInt())
@@ -214,7 +215,7 @@ class AssetScreen(private val data: MarketSyncPayload) : Screen(Text.literal("Ma
         // Total Cost Rendering
         val totalCost = getEstimatedTotal()
         val prefix = if (isMarketOrder && totalCost > 0) "~" else "" // Indicate estimation for market
-        val totalText = "$prefix${totalCost}¢"
+        val totalText = "$prefix${totalCost.formatKMB()}¢"
         val totalColor = if (isBuyTab) 0xFF55FF55.toInt() else 0xFFFF5555.toInt()
         context.drawText(this.textRenderer, totalText, panelX + 145 - this.textRenderer.getWidth(totalText), panelY + 105, totalColor, false)
     }
